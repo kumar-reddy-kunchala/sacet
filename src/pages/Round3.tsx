@@ -197,7 +197,7 @@ export default function Round3() {
               <Lock className="w-8 h-8 text-yellow-600" />
             </div>
             <h2 className="text-2xl font-black uppercase tracking-tight">Round 3 Locked</h2>
-            <p className="text-gray-500 text-sm">Enter the secret code to access the Final Round.</p>
+            <p className="text-gray-300 text-sm">Enter the secret code to access the Final Round.</p>
           </div>
 
           <form onSubmit={handleUnlock} className="space-y-4">
@@ -283,10 +283,10 @@ export default function Round3() {
       </AnimatePresence>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-1">
-          <h2 className="text-4xl font-black tracking-tighter uppercase font-display">Round 3: Final Round</h2>
-          <p className="text-gray-400 font-medium">Rapid Fire Round - 2 minutes per team.</p>
-        </div>
+          <div className="space-y-1">
+            <h2 className="text-4xl font-black tracking-tighter uppercase font-display">Round 3: Final Round</h2>
+            <p className="text-gray-300 font-medium">Rapid Fire Round - 2 minutes per team.</p>
+          </div>
         <div className="flex gap-4">
           <button 
             onClick={announceWinner}
@@ -345,7 +345,7 @@ export default function Round3() {
               </div>
               <div className="space-y-4">
                 <h3 className="text-5xl font-black tracking-tighter uppercase font-display">Final Showdown</h3>
-                <p className="text-gray-400 max-w-md mx-auto text-lg font-medium">
+                <p className="text-gray-300 max-w-md mx-auto text-lg font-medium">
                   Select a team from the left to start their 2-minute rapid fire round.
                 </p>
               </div>
@@ -358,7 +358,7 @@ export default function Round3() {
                     <div className="bg-yellow-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg shadow-yellow-500/20">
                       {currentQuestionIndex + 1}
                     </div>
-                    <span className="font-black text-gray-400 uppercase tracking-[0.2em] text-sm">Question {currentQuestionIndex + 1}</span>
+                    <span className="font-black text-gray-300 uppercase tracking-[0.2em] text-sm">Question {currentQuestionIndex + 1}</span>
                   </div>
                   <div className="text-xs font-black text-yellow-500 uppercase tracking-widest mt-2">
                     Active Team: {teams.find(t => t.id === activeTeamId)?.name}
@@ -425,7 +425,7 @@ export default function Round3() {
               <div className="flex justify-between items-center">
                 <button 
                   onClick={skipQuestion}
-                  className="px-8 py-4 text-gray-500 font-black uppercase tracking-widest hover:text-white transition-colors"
+                  className="px-8 py-4 text-gray-400 font-black uppercase tracking-widest hover:text-white transition-colors"
                 >
                   Skip Question
                 </button>

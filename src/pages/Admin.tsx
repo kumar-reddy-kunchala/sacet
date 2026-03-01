@@ -230,7 +230,7 @@ export default function Admin() {
               <ShieldCheck className="w-10 h-10 text-yellow-500" />
             </div>
             <h2 className="text-4xl font-black tracking-tighter uppercase font-display">Command Center</h2>
-            <p className="text-gray-400 font-medium">Authorization required to access system controls.</p>
+            <p className="text-gray-300 font-medium">Authorization required to access system controls.</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-8">
@@ -243,7 +243,7 @@ export default function Admin() {
                   value={credentials.password}
                   onChange={(e) => setCredentials({...credentials, password: e.target.value})}
                   placeholder="ACCESS CODE"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-sm font-bold tracking-widest focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-600"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-sm font-bold tracking-widest focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-500"
                 />
               </div>
             </div>
@@ -265,11 +265,11 @@ export default function Admin() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
         <div className="space-y-2">
           <h2 className="text-5xl font-black tracking-tighter uppercase font-display">Control Panel</h2>
-          <p className="text-gray-400 font-medium">System configuration and event management.</p>
+          <p className="text-gray-300 font-medium">System configuration and event management.</p>
         </div>
         <button 
           onClick={() => setIsLoggedIn(false)}
-          className="px-8 py-4 bg-white/5 text-gray-400 rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/5"
+          className="px-8 py-4 bg-white/5 text-gray-300 rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/5"
         >
           Terminate Session
         </button>
@@ -281,15 +281,15 @@ export default function Admin() {
           { id: 'questions', icon: BookOpen, label: 'Questions' },
           { id: 'results', icon: Trophy, label: 'Results' }
         ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm transition-all ${
-              activeTab === tab.id 
-                ? 'bg-yellow-600 text-white shadow-[0_0_30px_rgba(234,179,8,0.3)]' 
-                : 'text-gray-500 hover:text-white hover:bg-white/5'
-            }`}
-          >
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm transition-all ${
+                activeTab === tab.id 
+                  ? 'bg-yellow-600 text-white shadow-[0_0_30px_rgba(234,179,8,0.3)]' 
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
             <tab.icon className="w-5 h-5" />
             {tab.label}
           </button>
@@ -313,7 +313,7 @@ export default function Admin() {
                   className={`px-8 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all ${
                     activeRound === round 
                       ? 'bg-white text-black shadow-xl' 
-                      : 'text-gray-500 hover:text-white'
+                      : 'text-gray-400 hover:text-white'
                   }`}
                 >
                   {round.replace('round', 'Round ')}
@@ -327,17 +327,17 @@ export default function Admin() {
                 
                 <div className="space-y-8">
                   <div className="space-y-4">
-                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Question Content</label>
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Question Content</label>
                     <textarea 
                       value={newQuestion.text}
                       onChange={(e) => setNewQuestion({...newQuestion, text: e.target.value})}
                       placeholder="ENTER QUESTION TEXT..."
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-sm font-bold focus:ring-2 focus:ring-yellow-500 outline-none transition-all min-h-[120px] placeholder:text-gray-700"
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-sm font-bold focus:ring-2 focus:ring-yellow-500 outline-none transition-all min-h-[120px] placeholder:text-gray-600"
                     />
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Media Attachment</label>
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Media Attachment</label>
                     <div className="grid grid-cols-[120px_1fr] gap-4">
                       <select 
                         value={newQuestion.media.type}
@@ -353,13 +353,13 @@ export default function Admin() {
                         value={newQuestion.media.url}
                         onChange={(e) => setNewQuestion({...newQuestion, media: {...newQuestion.media, url: e.target.value}})}
                         placeholder="URL (HTTPS://...)"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-700"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-600"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-6">
-                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Response Options & Media</label>
+                    <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Response Options & Media</label>
                     <div className="space-y-6">
                       {newQuestion.options.map((opt, idx) => (
                         <div key={idx} className="space-y-3 p-4 bg-white/5 rounded-2xl border border-white/10">
@@ -369,7 +369,7 @@ export default function Admin() {
                               className={`w-10 h-10 rounded-xl flex items-center justify-center font-black transition-all flex-shrink-0 ${
                                 newQuestion.correctAnswer === idx 
                                   ? 'bg-yellow-500 text-white shadow-[0_0_20px_rgba(234,179,8,0.4)]' 
-                                  : 'bg-white/5 text-gray-500 hover:text-white'
+                                  : 'bg-white/5 text-gray-400 hover:text-white'
                               }`}
                             >
                               {String.fromCharCode(65 + idx)}
@@ -383,7 +383,7 @@ export default function Admin() {
                                 setNewQuestion({...newQuestion, options: newOpts});
                               }}
                               placeholder={`OPTION ${String.fromCharCode(65 + idx)}...`}
-                              className="flex-1 bg-transparent border-none px-2 py-2 text-sm font-bold focus:ring-0 outline-none placeholder:text-gray-700"
+                              className="flex-1 bg-transparent border-none px-2 py-2 text-sm font-bold focus:ring-0 outline-none placeholder:text-gray-600"
                             />
                           </div>
                           <div className="grid grid-cols-[100px_1fr] gap-3 pl-14">
@@ -409,7 +409,7 @@ export default function Admin() {
                                 setNewQuestion({...newQuestion, optionMedia: newMedia});
                               }}
                               placeholder="MEDIA URL..."
-                              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-[10px] font-bold focus:ring-1 focus:ring-yellow-500 outline-none placeholder:text-gray-700"
+                              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-[10px] font-bold focus:ring-1 focus:ring-yellow-500 outline-none placeholder:text-gray-600"
                             />
                           </div>
                         </div>
@@ -508,7 +508,7 @@ export default function Admin() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="SEARCH CANDIDATES, HALL TICKETS, OR COLLEGES..."
-                  className="w-full bg-white/5 border border-white/10 rounded-[32px] pl-16 pr-8 py-6 text-sm font-bold tracking-widest focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-700"
+                  className="w-full bg-white/5 border border-white/10 rounded-[32px] pl-16 pr-8 py-6 text-sm font-bold tracking-widest focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-600"
                 />
               </div>
               <button 
@@ -598,7 +598,7 @@ export default function Admin() {
                       value={newTeamName}
                       onChange={(e) => setNewTeamName(e.target.value)}
                       placeholder="ENTER TEAM NAME..."
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-sm font-bold focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-700"
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-sm font-bold focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-600"
                     />
                   </div>
                   <button 

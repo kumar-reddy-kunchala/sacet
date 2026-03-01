@@ -1,21 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Anton", sans-serif;
+  --font-display: "Outfit", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
 @layer base {
   body {
-    @apply bg-[#0A0A0A] text-[#F5F5F5] font-sans selection:bg-yellow-500/30;
+    @apply bg-[#0A0A0A] text-[#E5E5E5] font-sans selection:bg-yellow-500/30;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply bg-[#121212] border border-white/5 rounded-[32px] shadow-2xl;
+    @apply bg-[#121212] border border-white/10 rounded-[32px] shadow-2xl;
   }
   
   .neon-button {

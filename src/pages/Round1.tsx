@@ -174,7 +174,7 @@ export default function Round1() {
               <User className="w-10 h-10 text-yellow-500" />
             </div>
             <h2 className="text-4xl font-black tracking-tighter uppercase font-display">Registration</h2>
-            <p className="text-gray-400 font-medium">Initialize your credentials for the screening test.</p>
+            <p className="text-gray-300 font-medium">Initialize your credentials for the screening test.</p>
           </div>
 
           <form onSubmit={startQuiz} className="space-y-8">
@@ -187,7 +187,7 @@ export default function Round1() {
                   value={studentDetails.fullName}
                   onChange={(e) => setStudentDetails({...studentDetails, fullName: e.target.value})}
                   placeholder="FULL NAME"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-sm font-bold tracking-widest focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-600"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-sm font-bold tracking-widest focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-500"
                 />
               </div>
               <div className="relative group">
@@ -198,7 +198,7 @@ export default function Round1() {
                   value={studentDetails.collegeName}
                   onChange={(e) => setStudentDetails({...studentDetails, collegeName: e.target.value})}
                   placeholder="COLLEGE NAME"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-sm font-bold tracking-widest focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-600"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-sm font-bold tracking-widest focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-500"
                 />
               </div>
               <div className="relative group">
@@ -209,7 +209,7 @@ export default function Round1() {
                   value={studentDetails.branch}
                   onChange={(e) => setStudentDetails({...studentDetails, branch: e.target.value})}
                   placeholder="BRANCH (E.G., CSE, ECE)"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-sm font-bold tracking-widest focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-600"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-sm font-bold tracking-widest focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-500"
                 />
               </div>
               <div className="relative group">
@@ -220,7 +220,7 @@ export default function Round1() {
                   value={studentDetails.hallTicketNumber}
                   onChange={(e) => setStudentDetails({...studentDetails, hallTicketNumber: e.target.value})}
                   placeholder="HALL TICKET NUMBER"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-sm font-bold tracking-widest focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-600"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-sm font-bold tracking-widest focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-500"
                 />
               </div>
             </div>
@@ -253,16 +253,16 @@ export default function Round1() {
             <h2 className="text-5xl font-black tracking-tighter uppercase font-display">Analysis Complete</h2>
             <div className="space-y-1">
               <p className="text-2xl font-black text-white uppercase tracking-tight">{studentDetails.fullName}</p>
-              <p className="text-gray-500 font-mono text-sm tracking-widest">{studentDetails.hallTicketNumber}</p>
+              <p className="text-gray-400 font-mono text-sm tracking-widest">{studentDetails.hallTicketNumber}</p>
             </div>
           </div>
           
           <div className="space-y-4">
-            <p className="text-xs font-black text-gray-500 uppercase tracking-[0.3em]">Final Performance Score</p>
+            <p className="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Final Performance Score</p>
             <p className="text-8xl font-black text-yellow-500 font-display tracking-tighter">{score} <span className="text-3xl text-gray-600">/ {questions.length}</span></p>
           </div>
 
-          <p className="text-gray-400 max-w-md mx-auto text-lg font-medium">
+          <p className="text-gray-300 max-w-md mx-auto text-lg font-medium">
             {score >= (questions.length * 0.6) ? "Exceptional performance. Shortlist probability: HIGH." : "Analysis complete. Shortlist probability: MODERATE."}
           </p>
 
@@ -289,7 +289,7 @@ export default function Round1() {
             <span className="px-4 py-1.5 bg-yellow-500/20 text-yellow-400 rounded-full text-xs font-black uppercase tracking-widest border border-yellow-500/20">
               Question {currentQuestionIndex + 1} / {questions.length}
             </span>
-            <span className="text-gray-500 font-mono text-xs uppercase tracking-widest">
+            <span className="text-gray-400 font-mono text-xs uppercase tracking-widest">
               ID: {studentDetails.hallTicketNumber}
             </span>
           </div>
@@ -415,13 +415,13 @@ export default function Round1() {
             ))}
           </div>
           <div className="pt-8 border-t border-white/5 space-y-4">
-            <div className="flex items-center gap-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+            <div className="flex items-center gap-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
               <div className="w-3 h-3 rounded-full bg-yellow-600 shadow-[0_0_10px_rgba(234,179,8,0.5)]" /> Active
             </div>
-            <div className="flex items-center gap-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+            <div className="flex items-center gap-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
               <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/30" /> Answered
             </div>
-            <div className="flex items-center gap-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+            <div className="flex items-center gap-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
               <div className="w-3 h-3 rounded-full bg-white/5 border border-white/5" /> Unvisited
             </div>
           </div>

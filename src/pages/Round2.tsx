@@ -158,7 +158,7 @@ export default function Round2() {
               <Lock className="w-8 h-8 text-yellow-600" />
             </div>
             <h2 className="text-2xl font-black uppercase tracking-tight">Round 2 Locked</h2>
-            <p className="text-gray-500 text-sm">Enter the secret code to access this round.</p>
+            <p className="text-gray-300 text-sm">Enter the secret code to access this round.</p>
           </div>
 
           <form onSubmit={handleUnlock} className="space-y-4">
@@ -189,10 +189,10 @@ export default function Round2() {
   return (
     <div className="space-y-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-1">
-          <h2 className="text-4xl font-black tracking-tighter uppercase font-display">Round 2: Team Technical</h2>
-          <p className="text-gray-400 font-medium">Manage teams and conduct the technical round.</p>
-        </div>
+          <div className="space-y-1">
+            <h2 className="text-4xl font-black tracking-tighter uppercase font-display">Round 2: Team Technical</h2>
+            <p className="text-gray-300 font-medium">Manage teams and conduct the technical round.</p>
+          </div>
         <button 
           onClick={resetAllScores}
           className="px-6 py-3 bg-red-500/10 text-red-400 rounded-xl font-bold hover:bg-red-500/20 transition-colors text-sm uppercase tracking-widest border border-red-500/20"
@@ -212,7 +212,7 @@ export default function Round2() {
             
             <div className="space-y-3">
               {teams.length === 0 && (
-                <p className="text-center py-8 text-gray-500 text-sm italic">No teams added yet. Add teams in Admin Panel.</p>
+                <p className="text-center py-8 text-gray-400 text-sm italic">No teams added yet. Add teams in Admin Panel.</p>
               )}
               {teams.map((team) => (
                 <motion.div 
@@ -262,7 +262,7 @@ export default function Round2() {
                 <h3 className="text-5xl font-black tracking-tighter uppercase font-display">
                   {currentQuestionIndex > 0 ? 'Round Completed!' : 'Ready to start?'}
                 </h3>
-                <p className="text-gray-400 max-w-md mx-auto text-lg font-medium">
+                <p className="text-gray-300 max-w-md mx-auto text-lg font-medium">
                   {currentQuestionIndex > 0 
                     ? 'The technical round has finished. Here are the top performing teams.' 
                     : 'Ensure all teams are added and ready. Each question has a 30-second timer.'}
@@ -271,7 +271,7 @@ export default function Round2() {
 
               {currentQuestionIndex > 0 && (
                 <div className="max-w-md mx-auto space-y-4 py-8">
-                  <h4 className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] mb-6">Top 5 Qualifiers</h4>
+                  <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Top 5 Qualifiers</h4>
                   {[...teams]
                     .sort((a, b) => b.score - a.score)
                     .slice(0, 5)
@@ -281,7 +281,7 @@ export default function Round2() {
                           <span className="w-8 h-8 rounded-lg bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-black text-sm">
                             {idx + 1}
                           </span>
-                          <span className="font-bold uppercase tracking-tight">{team.name}</span>
+                          <span className="font-bold uppercase tracking-tight text-gray-200">{team.name}</span>
                         </div>
                         <span className="font-black text-yellow-500 font-display">{team.score}</span>
                       </div>
@@ -317,17 +317,17 @@ export default function Round2() {
                 )}
                 
                 {currentQuestionIndex > 0 && (
-                  <button 
-                    onClick={() => {
-                      setIsQuizActive(true);
-                      setCurrentQuestionIndex(0);
-                      setTimeLeft(30);
-                      setRevealedAnswers({});
-                    }}
-                    className="text-gray-500 font-bold uppercase tracking-widest text-xs hover:text-white transition-colors"
-                  >
-                    Restart Round
-                  </button>
+                    <button 
+                      onClick={() => {
+                        setIsQuizActive(true);
+                        setCurrentQuestionIndex(0);
+                        setTimeLeft(30);
+                        setRevealedAnswers({});
+                      }}
+                      className="text-gray-400 font-bold uppercase tracking-widest text-xs hover:text-white transition-colors"
+                    >
+                      Restart Round
+                    </button>
                 )}
               </div>
             </div>
@@ -339,7 +339,7 @@ export default function Round2() {
                     <div className="bg-yellow-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg shadow-yellow-500/20">
                       {currentQuestionIndex + 1}
                     </div>
-                    <span className="font-black text-gray-400 uppercase tracking-[0.2em] text-sm">Question {currentQuestionIndex + 1} / {questions.length}</span>
+                    <span className="font-black text-gray-300 uppercase tracking-[0.2em] text-sm">Question {currentQuestionIndex + 1} / {questions.length}</span>
                   </div>
                   {activeTeamId && (
                     <div className="text-xs font-black text-yellow-500 uppercase tracking-widest mt-2 flex items-center gap-2">

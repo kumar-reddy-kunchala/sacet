@@ -22,7 +22,7 @@ export default function Home() {
             TECHTRECK
           </h1>
           
-          <p className="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto font-medium leading-relaxed">
+          <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto font-medium leading-relaxed">
             The ultimate technical quiz battleground organized by the <br />
             <span className="text-yellow-400 font-black">CSE Department</span> of St Ann's College of Engineering & Technology.
           </p>
@@ -45,7 +45,7 @@ export default function Home() {
           >
             <item.icon className="w-6 h-6 text-orange-500 mx-auto group-hover:scale-110 transition-transform" />
             <div className="space-y-1">
-              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{item.label}</p>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{item.label}</p>
               <p className="text-lg font-black text-white uppercase tracking-tight">{item.value}</p>
             </div>
           </motion.div>
@@ -63,7 +63,7 @@ export default function Home() {
             <ShieldCheck className="w-6 h-6 text-yellow-500" />
             <h3 className="text-2xl font-display uppercase tracking-tight text-yellow-500">About SACET</h3>
           </div>
-          <p className="text-gray-400 leading-relaxed">
+          <p className="text-gray-300 leading-relaxed">
             St. Ann's College of Engineering & Technology (SACET), Chirala, established in 2001, is a premier institution dedicated to academic excellence. The <span className="text-yellow-400 font-bold">Department of Computer Science and Engineering</span> is renowned for its innovative approach to technical education, preparing students for the dynamic world of technology through events like TECHTRECK.
           </p>
         </motion.div>
@@ -77,7 +77,7 @@ export default function Home() {
             <Info className="w-6 h-6 text-orange-500" />
             <h3 className="text-2xl font-display uppercase tracking-tight text-orange-500">General Rules</h3>
           </div>
-          <ul className="space-y-4 text-gray-400">
+          <ul className="space-y-4 text-gray-300">
             {[
               "Open to all engineering students.",
               "Round 1 is individual; subsequent rounds are team-based.",
@@ -111,20 +111,20 @@ export default function Home() {
             Round 3
           </button>
         </Link>
-        <Link to="/admin" className="text-gray-500 hover:text-white font-black uppercase tracking-widest text-sm transition-all ml-4">
+        <Link to="/admin" className="text-gray-400 hover:text-white font-black uppercase tracking-widest text-sm transition-all ml-4">
           Admin Login
         </Link>
       </section>
 
       {/* Footer */}
       <footer className="pt-20 pb-10 text-center space-y-4 border-t border-white/5">
-        <p className="text-xs font-medium text-gray-600 uppercase tracking-widest">
+        <p className="text-xs font-medium text-gray-400 uppercase tracking-widest">
           © 2026 Sri Aditya College of Engineering & Technology
         </p>
-        <p className="text-[10px] font-black text-gray-700 uppercase tracking-[0.3em]">
+        <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">
           Department of CSE - TechTreck 2026
         </p>
-        <Link to="/admin" className="block text-[10px] font-black text-gray-800 uppercase tracking-widest hover:text-gray-600 transition-colors">
+        <Link to="/admin" className="block text-[10px] font-black text-gray-600 uppercase tracking-widest hover:text-gray-400 transition-colors">
           Organizer Portal
         </Link>
       </footer>
