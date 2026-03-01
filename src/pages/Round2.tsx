@@ -1,24 +1,22 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Trash2, Timer, Trophy, ChevronRight, Users, AlertCircle, Lock, LogIn } from 'lucide-react';
 import { getQuestions } from '../utils/questionLoader';
 import { Team, Question } from '../types';
 import MediaRenderer from '../components/MediaRenderer';
+import { playSound } from '../utils/audio';
 
 export default function Round2() {
   const [isLocked, setIsLocked] = useState(true);
   const [secretCode, setSecretCode] = useState('');
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [teams, setTeams] = useState<Team[]>(() => {
-    const saved = localStorage.getItem('sacet_teams');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [newTeamName, setNewTeamName] = useState('');
+  const [teams, setTeams] = useState<Team[]>([]);
   const [activeTeamId, setActiveTeamId] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
   const [isQuizActive, setIsQuizActive] = useState(false);
   const [revealedAnswers, setRevealedAnswers] = useState<Record<number, number>>({});
+  const timerAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const unlocked = sessionStorage.getItem('sacet_round2_unlocked');
@@ -37,6 +35,11 @@ export default function Round2() {
       alert('Invalid secret code');
     }
   };
+
+  useEffect(() => {
+    const saved = localStorage.getItem('sacet_teams');
+    if (saved) setTeams(JSON.parse(saved));
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('sacet_teams', JSON.stringify(teams));
@@ -58,14 +61,28 @@ export default function Round2() {
     if (activeTeamId) {
       const isCorrect = idx === currentQuestion.correctAnswer;
       if (isCorrect) {
+        playSound('correct');
         setTeams(prev => prev.map(t => t.id === activeTeamId ? { ...t, score: t.score + 10 } : t));
       } else {
-        setTeams(prev => prev.map(t => t.id === activeTeamId ? { ...t, score: Math.max(0, t.score - 5) } : t));
+        playSound('wrong');
+        setTeams(prev => prev.map(t => t.id === activeTeamId ? { ...t, score: t.score - 5 } : t));
       }
     }
   };
 
   useEffect(() => {
+    if (isQuizActive && timeLeft > 0) {
+      if (!timerAudioRef.current) {
+        timerAudioRef.current = playSound('timer');
+        timerAudioRef.current.loop = true;
+      }
+    } else {
+      if (timerAudioRef.current) {
+        timerAudioRef.current.pause();
+        timerAudioRef.current = null;
+      }
+    }
+
     if (!isQuizActive) return;
 
     if (timeLeft <= 0) {
@@ -77,23 +94,13 @@ export default function Round2() {
       setTimeLeft(prev => prev - 1);
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [timeLeft, isQuizActive, handleNextQuestion]);
-
-  const addTeam = () => {
-    if (!newTeamName.trim()) return;
-    const newTeam: Team = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: newTeamName,
-      score: 0
+    return () => {
+      clearInterval(timer);
+      if (timerAudioRef.current) {
+        timerAudioRef.current.pause();
+      }
     };
-    setTeams([...teams, newTeam]);
-    setNewTeamName('');
-  };
-
-  const removeTeam = (id: string) => {
-    setTeams(teams.filter(t => t.id !== id));
-  };
+  }, [timeLeft, isQuizActive, handleNextQuestion]);
 
   const updateScore = (id: string, amount: number) => {
     setTeams(teams.map(t => t.id === id ? { ...t, score: t.score + amount } : t));
@@ -101,7 +108,27 @@ export default function Round2() {
 
   const resetAllScores = () => {
     if (confirm('Are you sure you want to reset all team scores?')) {
-      setTeams(teams.map(t => ({ ...t, score: 0 })));
+      const resetTeams = teams.map(t => ({ ...t, score: 0 }));
+      setTeams(resetTeams);
+      localStorage.setItem('sacet_teams', JSON.stringify(resetTeams));
+    }
+  };
+
+  const moveToRound3 = () => {
+    if (teams.length < 5) {
+      alert('You need at least 5 teams to move to Round 3.');
+      return;
+    }
+    if (confirm('This will select the top 5 teams and reset their scores to 0 for Round 3. Continue?')) {
+      const top5 = [...teams]
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5)
+        .map(t => ({ ...t, score: 0 }));
+      
+      setTeams(top5);
+      localStorage.setItem('sacet_teams', JSON.stringify(top5));
+      alert('Top 5 teams have been moved to Round 3 and scores reset.');
+      window.location.href = '/round3';
     }
   };
 
@@ -127,8 +154,8 @@ export default function Round2() {
           className="bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-black/5 w-full max-w-md space-y-8"
         >
           <div className="text-center space-y-2">
-            <div className="bg-indigo-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-indigo-600" />
+            <div className="bg-yellow-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-8 h-8 text-yellow-600" />
             </div>
             <h2 className="text-2xl font-black uppercase tracking-tight">Round 2 Locked</h2>
             <p className="text-gray-500 text-sm">Enter the secret code to access this round.</p>
@@ -141,14 +168,14 @@ export default function Round2() {
                 type="password" 
                 value={secretCode}
                 onChange={(e) => setSecretCode(e.target.value)}
-                className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-yellow-500 outline-none"
                 placeholder="••••••••"
                 autoFocus
               />
             </div>
             <button 
               type="submit"
-              className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 uppercase tracking-widest flex items-center justify-center gap-2"
+              className="w-full bg-yellow-600 text-white py-4 rounded-xl font-bold hover:bg-yellow-700 transition-all shadow-lg shadow-yellow-900/20 uppercase tracking-widest flex items-center justify-center gap-2"
             >
               <LogIn className="w-4 h-4" />
               Unlock Round
@@ -163,79 +190,56 @@ export default function Round2() {
     <div className="space-y-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
-          <h2 className="text-3xl font-black tracking-tight uppercase">Round 2: Team Technical</h2>
-          <p className="text-gray-500 font-medium">Manage teams and conduct the technical round.</p>
+          <h2 className="text-4xl font-black tracking-tighter uppercase font-display">Round 2: Team Technical</h2>
+          <p className="text-gray-400 font-medium">Manage teams and conduct the technical round.</p>
         </div>
         <button 
           onClick={resetAllScores}
-          className="px-6 py-3 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-colors text-sm uppercase tracking-widest"
+          className="px-6 py-3 bg-red-500/10 text-red-400 rounded-xl font-bold hover:bg-red-500/20 transition-colors text-sm uppercase tracking-widest border border-red-500/20"
         >
           Reset All Scores
         </button>
       </div>
 
-      <div className="grid lg:grid-cols-[350px_1fr] gap-12">
+      <div className="grid lg:grid-cols-[380px_1fr] gap-12">
         {/* Team Management */}
         <aside className="space-y-8">
-          <div className="bg-white p-6 rounded-3xl border border-black/5 shadow-sm space-y-6">
-            <h3 className="font-bold text-xl flex items-center gap-2">
-              <Users className="w-5 h-5 text-indigo-600" />
+          <div className="glass-card p-8 space-y-6">
+            <h3 className="font-black text-xl flex items-center gap-3 uppercase tracking-tight font-display">
+              <Users className="w-6 h-6 text-yellow-500" />
               Teams
             </h3>
             
-            <div className="flex gap-2">
-              <input 
-                type="text" 
-                value={newTeamName}
-                onChange={(e) => setNewTeamName(e.target.value)}
-                placeholder="Team Name"
-                className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                onKeyPress={(e) => e.key === 'Enter' && addTeam()}
-              />
-              <button 
-                onClick={addTeam}
-                className="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 transition-colors"
-              >
-                <Plus className="w-5 h-5" />
-              </button>
-            </div>
-
             <div className="space-y-3">
               {teams.length === 0 && (
-                <p className="text-center py-8 text-gray-400 text-sm italic">No teams added yet.</p>
+                <p className="text-center py-8 text-gray-500 text-sm italic">No teams added yet. Add teams in Admin Panel.</p>
               )}
               {teams.map((team) => (
                 <motion.div 
                   layout
                   key={team.id}
                   onClick={() => setActiveTeamId(team.id)}
-                  className={`p-4 rounded-2xl border transition-all group cursor-pointer ${
+                  className={`p-5 rounded-2xl border-2 transition-all group cursor-pointer ${
                     activeTeamId === team.id 
-                      ? 'border-indigo-600 bg-indigo-50' 
-                      : 'border-gray-100 bg-gray-50 hover:border-indigo-200'
+                      ? 'border-yellow-500 bg-yellow-500/10' 
+                      : 'border-white/5 bg-white/5 hover:border-white/20'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-bold text-gray-900">{team.name}</span>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); removeTeam(team.id); }}
-                      className="text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="font-black text-lg uppercase tracking-tight">{team.name}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="text-2xl font-black text-indigo-600">{team.score}</div>
+                    <div className="text-3xl font-black text-yellow-500 font-display">{team.score}</div>
                     <div className="flex gap-2">
                       <button 
                         onClick={(e) => { e.stopPropagation(); updateScore(team.id, -5); }}
-                        className="w-10 h-10 rounded-lg bg-white border border-gray-200 text-red-500 font-bold hover:bg-red-50 transition-colors"
+                        className="w-10 h-10 rounded-xl bg-red-500/10 text-red-400 font-black hover:bg-red-500/20 transition-colors border border-red-500/20"
                       >
                         -5
                       </button>
                       <button 
                         onClick={(e) => { e.stopPropagation(); updateScore(team.id, 10); }}
-                        className="w-10 h-10 rounded-lg bg-white border border-gray-200 text-green-600 font-bold hover:bg-green-50 transition-colors"
+                        className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 font-black hover:bg-emerald-500/20 transition-colors border border-emerald-500/20"
                       >
                         +10
                       </button>
@@ -250,81 +254,133 @@ export default function Round2() {
         {/* Question System */}
         <main className="space-y-8">
           {!isQuizActive ? (
-            <div className="bg-white rounded-3xl p-12 border border-black/5 shadow-sm text-center space-y-6">
-              <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto">
-                <Trophy className="w-10 h-10 text-indigo-600" />
+            <div className="glass-card p-16 text-center space-y-10">
+              <div className="w-24 h-24 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto shadow-[0_0_50px_rgba(234,179,8,0.2)]">
+                <Trophy className="w-12 h-12 text-yellow-500 animate-pulse" />
               </div>
-              <div className="space-y-2">
-                <h3 className="text-3xl font-bold">Ready to start?</h3>
-                <p className="text-gray-500 max-w-md mx-auto">
-                  Ensure all teams are added and ready. Each question has a 30-second timer.
+              <div className="space-y-4">
+                <h3 className="text-5xl font-black tracking-tighter uppercase font-display">
+                  {currentQuestionIndex > 0 ? 'Round Completed!' : 'Ready to start?'}
+                </h3>
+                <p className="text-gray-400 max-w-md mx-auto text-lg font-medium">
+                  {currentQuestionIndex > 0 
+                    ? 'The technical round has finished. Here are the top performing teams.' 
+                    : 'Ensure all teams are added and ready. Each question has a 30-second timer.'}
                 </p>
               </div>
-              <button 
-                onClick={() => {
-                  if (questions.length === 0) {
-                    alert('Please add questions in the Manage Questions page first.');
-                    return;
-                  }
-                  setIsQuizActive(true);
-                  setCurrentQuestionIndex(0);
-                  setTimeLeft(30);
-                  setRevealedAnswers({});
-                }}
-                className="px-12 py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-all shadow-xl"
-              >
-                Start Question Round
-              </button>
+
+              {currentQuestionIndex > 0 && (
+                <div className="max-w-md mx-auto space-y-4 py-8">
+                  <h4 className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] mb-6">Top 5 Qualifiers</h4>
+                  {[...teams]
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, 5)
+                    .map((team, idx) => (
+                      <div key={team.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                        <div className="flex items-center gap-4">
+                          <span className="w-8 h-8 rounded-lg bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-black text-sm">
+                            {idx + 1}
+                          </span>
+                          <span className="font-bold uppercase tracking-tight">{team.name}</span>
+                        </div>
+                        <span className="font-black text-yellow-500 font-display">{team.score}</span>
+                      </div>
+                    ))}
+                </div>
+              )}
+
+              <div className="flex flex-col gap-4 items-center">
+                {currentQuestionIndex > 0 ? (
+                  <button 
+                    onClick={moveToRound3}
+                    className="neon-button neon-button-emerald w-full max-w-sm flex items-center justify-center gap-3 text-xl"
+                  >
+                    <Trophy className="w-6 h-6" />
+                    Advance to Final Round
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => {
+                      if (questions.length === 0) {
+                        alert('Please add questions in the Manage Questions page first.');
+                        return;
+                      }
+                      setIsQuizActive(true);
+                      setCurrentQuestionIndex(0);
+                      setTimeLeft(30);
+                      setRevealedAnswers({});
+                    }}
+                    className="neon-button neon-button-yellow w-full max-w-sm text-xl"
+                  >
+                    Start Question Round
+                  </button>
+                )}
+                
+                {currentQuestionIndex > 0 && (
+                  <button 
+                    onClick={() => {
+                      setIsQuizActive(true);
+                      setCurrentQuestionIndex(0);
+                      setTimeLeft(30);
+                      setRevealedAnswers({});
+                    }}
+                    className="text-gray-500 font-bold uppercase tracking-widest text-xs hover:text-white transition-colors"
+                  >
+                    Restart Round
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <div className="space-y-8">
-              <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-black/5 shadow-sm">
-                <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between glass-card p-8">
+                <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-4">
-                    <div className="bg-indigo-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-bold">
+                    <div className="bg-yellow-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg shadow-yellow-500/20">
                       {currentQuestionIndex + 1}
                     </div>
-                    <span className="font-bold text-gray-500 uppercase tracking-widest text-sm">Question {currentQuestionIndex + 1} of {questions.length}</span>
+                    <span className="font-black text-gray-400 uppercase tracking-[0.2em] text-sm">Question {currentQuestionIndex + 1} / {questions.length}</span>
                   </div>
                   {activeTeamId && (
-                    <div className="text-xs font-bold text-indigo-600 uppercase tracking-widest mt-1">
+                    <div className="text-xs font-black text-yellow-500 uppercase tracking-widest mt-2 flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-yellow-500 animate-ping" />
                       Answering: {teams.find(t => t.id === activeTeamId)?.name}
                     </div>
                   )}
                 </div>
-                <div className={`flex items-center gap-3 px-6 py-3 rounded-xl font-mono text-2xl font-bold ${timeLeft < 10 ? 'bg-red-50 text-red-600 animate-pulse' : 'bg-indigo-50 text-indigo-600'}`}>
-                  <Timer className="w-6 h-6" />
+                <div className={`flex items-center gap-4 px-8 py-4 rounded-2xl font-mono text-3xl font-black border-2 ${timeLeft < 10 ? 'bg-red-500/10 text-red-500 border-red-500/20 animate-pulse' : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'}`}>
+                  <Timer className="w-8 h-8" />
                   {timeLeft}s
                 </div>
               </div>
 
               <motion.div 
                 key={currentQuestionIndex}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white p-12 rounded-3xl border border-black/5 shadow-sm space-y-12"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="glass-card p-12 space-y-12"
               >
-                <div className="space-y-6">
-                  <h3 className="text-3xl md:text-4xl font-bold leading-tight text-gray-900 text-center">
+                <div className="space-y-8">
+                  <h3 className="text-4xl md:text-5xl font-black leading-tight text-white text-center font-display tracking-tight">
                     {currentQuestion?.text}
                   </h3>
-                  <MediaRenderer media={currentQuestion?.media} className="max-w-3xl mx-auto" />
+                  <MediaRenderer media={currentQuestion?.media} className="max-w-3xl mx-auto rounded-3xl overflow-hidden shadow-2xl border border-white/10" />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-2 gap-6">
                   {currentQuestion?.options.map((option, idx) => {
                     const isRevealed = selectedOption !== undefined;
                     const isCorrect = idx === currentQuestion.correctAnswer;
                     const isSelected = selectedOption === idx;
 
-                    let optionClass = 'border-gray-100 bg-gray-50 text-gray-700 hover:border-indigo-200 cursor-pointer';
+                    let optionClass = 'border-white/5 bg-white/5 text-gray-300 hover:border-yellow-500/50 hover:bg-white/10 cursor-pointer';
                     if (isRevealed) {
                       if (isCorrect) {
-                        optionClass = 'border-green-500 bg-green-50 text-green-900';
+                        optionClass = 'border-emerald-500 bg-emerald-500/20 text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.2)]';
                       } else if (isSelected) {
-                        optionClass = 'border-red-500 bg-red-50 text-red-900';
+                        optionClass = 'border-red-500 bg-red-500/20 text-red-400 shadow-[0_0_30px_rgba(220,38,38,0.2)]';
                       } else {
-                        optionClass = 'border-gray-100 bg-gray-50 text-gray-300 opacity-50';
+                        optionClass = 'border-white/5 bg-white/5 text-gray-600 opacity-30';
                       }
                     }
 
@@ -333,16 +389,16 @@ export default function Round2() {
                         key={idx}
                         disabled={isRevealed}
                         onClick={() => handleOptionClick(idx)}
-                        className={`p-6 rounded-2xl border-2 font-bold text-lg flex flex-col gap-4 transition-all text-left ${optionClass}`}
+                        className={`p-8 rounded-3xl border-2 font-black text-xl flex flex-col gap-6 transition-all text-left group ${optionClass}`}
                       >
-                        <div className="flex items-center gap-4 w-full">
-                          <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0 ${isRevealed && isCorrect ? 'bg-green-600 text-white' : 'bg-white border border-gray-200 text-gray-400'}`}>
+                        <div className="flex items-center gap-6 w-full">
+                          <span className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm flex-shrink-0 transition-all ${isRevealed && isCorrect ? 'bg-emerald-500 text-white' : 'bg-white/10 border border-white/10 text-gray-400 group-hover:border-yellow-500/50 group-hover:text-yellow-400'}`}>
                             {String.fromCharCode(65 + idx)}
                           </span>
-                          <span className="flex-1">{option}</span>
+                          <span className="flex-1 uppercase tracking-tight">{option}</span>
                         </div>
                         {currentQuestion.optionMedia?.[idx] && (
-                          <MediaRenderer media={currentQuestion.optionMedia[idx]} className="w-full max-h-[150px]" />
+                          <MediaRenderer media={currentQuestion.optionMedia[idx]} className="w-full max-h-[200px] rounded-2xl overflow-hidden border border-white/10" />
                         )}
                       </button>
                     );
@@ -351,11 +407,11 @@ export default function Round2() {
 
                 {selectedOption !== undefined && (
                   <motion.div 
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className={`p-6 rounded-2xl text-center font-black text-2xl uppercase tracking-widest ${selectedOption === currentQuestion.correctAnswer ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-8 rounded-[32px] text-center font-black text-3xl uppercase tracking-[0.2em] font-display ${selectedOption === currentQuestion.correctAnswer ? 'bg-emerald-500/20 text-emerald-400 border-2 border-emerald-500/20' : 'bg-red-500/20 text-red-400 border-2 border-red-500/20'}`}
                   >
-                    {selectedOption === currentQuestion.correctAnswer ? 'Correct Answer!' : `Wrong! Correct: ${currentQuestion.options[currentQuestion.correctAnswer]}`}
+                    {selectedOption === currentQuestion.correctAnswer ? 'System Correct' : `System Error: ${currentQuestion.options[currentQuestion.correctAnswer]}`}
                   </motion.div>
                 )}
               </motion.div>
@@ -363,9 +419,9 @@ export default function Round2() {
               <div className="flex justify-end">
                 <button 
                   onClick={handleNextQuestion}
-                  className="flex items-center gap-2 px-8 py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-all"
+                  className="neon-button neon-button-yellow flex items-center gap-3"
                 >
-                  Next Question <ChevronRight className="w-5 h-5" />
+                  Next Transmission <ChevronRight className="w-6 h-6" />
                 </button>
               </div>
             </div>

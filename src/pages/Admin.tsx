@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { Plus, Trash2, Save, RotateCcw, ChevronDown, ChevronUp, Settings, LogIn, Users, FileText, Download, Search, Image as ImageIcon, Video, Music, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Plus, Trash2, Save, RotateCcw, ChevronDown, ChevronUp, Settings, LogIn, Users, FileText, Download, Search, Image as ImageIcon, Video, Music, AlertCircle, Trophy, ShieldCheck, Lock, BookOpen } from 'lucide-react';
 import { ROUND1_QUESTIONS, ROUND2_QUESTIONS, ROUND3_QUESTIONS } from '../constants';
 import { Question, StudentResult, Media } from '../types';
 
@@ -9,7 +9,7 @@ type RoundKey = 'round1' | 'round2' | 'round3';
 export default function Admin() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [credentials, setCredentials] = useState({ username: '', password: '' });
-  const [activeTab, setActiveTab] = useState<'questions' | 'results' | 'teams' | 'settings'>('questions');
+  const [activeTab, setActiveTab] = useState<'questions' | 'results' | 'teams'>('questions');
   const [activeRound, setActiveRound] = useState<RoundKey>('round1');
   const [questions, setQuestions] = useState<Record<RoundKey, Question[]>>({
     round1: [],
@@ -18,6 +18,8 @@ export default function Admin() {
   });
   const [results, setResults] = useState<StudentResult[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
+  const [newTeamName, setNewTeamName] = useState('');
+  const [sortByScore, setSortByScore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   const [newQuestion, setNewQuestion] = useState({
@@ -128,6 +130,7 @@ export default function Admin() {
         round3: ROUND3_QUESTIONS
       };
       saveToStorage(defaults);
+      alert('Questions have been reset to defaults.');
     }
   };
 
@@ -135,21 +138,16 @@ export default function Admin() {
     if (confirm('Are you sure you want to clear all student results? This cannot be undone.')) {
       localStorage.removeItem('sacet_results');
       setResults([]);
+      alert('All student results have been cleared.');
     }
   };
 
   const resetTeamScores = () => {
     if (confirm('Are you sure you want to reset all team scores to 0? This will affect Round 2 and Round 3.')) {
-      const savedTeams = localStorage.getItem('sacet_teams');
-      if (savedTeams) {
-        const parsedTeams = JSON.parse(savedTeams);
-        const resetTeams = parsedTeams.map((t: any) => ({ ...t, score: 0 }));
-        localStorage.setItem('sacet_teams', JSON.stringify(resetTeams));
-        setTeams(resetTeams);
-        alert('All team scores have been reset to 0.');
-      } else {
-        alert('No teams found to reset.');
-      }
+      const resetTeams = teams.map((t: any) => ({ ...t, score: 0 }));
+      localStorage.setItem('sacet_teams', JSON.stringify(resetTeams));
+      setTeams(resetTeams);
+      alert('All team scores have been reset to 0.');
     }
   };
 
@@ -158,6 +156,48 @@ export default function Admin() {
       localStorage.removeItem('sacet_teams');
       setTeams([]);
       alert('All teams have been deleted.');
+    }
+  };
+
+  const addTeam = () => {
+    if (!newTeamName.trim()) return;
+    const newTeam = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: newTeamName,
+      score: 0
+    };
+    const updatedTeams = [...teams, newTeam];
+    setTeams(updatedTeams);
+    localStorage.setItem('sacet_teams', JSON.stringify(updatedTeams));
+    setNewTeamName('');
+  };
+
+  const removeTeam = (id: string) => {
+    const updatedTeams = teams.filter(t => t.id !== id);
+    setTeams(updatedTeams);
+    localStorage.setItem('sacet_teams', JSON.stringify(updatedTeams));
+  };
+
+  const updateTeamScore = (id: string, amount: number) => {
+    const updatedTeams = teams.map(t => t.id === id ? { ...t, score: t.score + amount } : t);
+    setTeams(updatedTeams);
+    localStorage.setItem('sacet_teams', JSON.stringify(updatedTeams));
+  };
+
+  const moveToRound3 = () => {
+    if (teams.length < 5) {
+      alert('You need at least 5 teams to move to Round 3.');
+      return;
+    }
+    if (confirm('This will select the top 5 teams and reset their scores to 0 for Round 3. Continue?')) {
+      const top5 = [...teams]
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5)
+        .map(t => ({ ...t, score: 0 }));
+      
+      setTeams(top5);
+      localStorage.setItem('sacet_teams', JSON.stringify(top5));
+      alert('Top 5 teams have been moved to Round 3 and scores reset.');
     }
   };
 
@@ -179,523 +219,473 @@ export default function Admin() {
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-black/5 w-full max-w-md space-y-8"
-        >
-          <div className="text-center space-y-2">
-            <div className="bg-indigo-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <LogIn className="w-8 h-8 text-indigo-600" />
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-md mx-auto"
+      >
+        <div className="glass-card p-12 space-y-10">
+          <div className="text-center space-y-4">
+            <div className="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <ShieldCheck className="w-10 h-10 text-yellow-500" />
             </div>
-            <h2 className="text-2xl font-black uppercase tracking-tight">Admin Login</h2>
-            <p className="text-gray-500 text-sm">Enter credentials to access the admin panel.</p>
+            <h2 className="text-4xl font-black tracking-tighter uppercase font-display">Command Center</h2>
+            <p className="text-gray-400 font-medium">Authorization required to access system controls.</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Username</label>
-              <input 
-                type="text" 
-                value={credentials.username}
-                onChange={(e) => setCredentials({...credentials, username: e.target.value})}
-                className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                placeholder="admin"
-              />
+          <form onSubmit={handleLogin} className="space-y-8">
+            <div className="space-y-4">
+              <div className="relative group">
+                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-yellow-500 transition-colors" />
+                <input 
+                  type="password" 
+                  required
+                  value={credentials.password}
+                  onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+                  placeholder="ACCESS CODE"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-sm font-bold tracking-widest focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-600"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Password</label>
-              <input 
-                type="password" 
-                value={credentials.password}
-                onChange={(e) => setCredentials({...credentials, password: e.target.value})}
-                className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                placeholder="••••••••"
-              />
-            </div>
+
             <button 
               type="submit"
-              className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 uppercase tracking-widest"
+              className="neon-button neon-button-yellow w-full text-lg"
             >
-              Login
+              Authenticate
             </button>
           </form>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-1">
-          <h2 className="text-3xl font-black tracking-tight uppercase flex items-center gap-3">
-            <button 
-              onClick={() => setActiveTab('settings')}
-              className="hover:rotate-12 transition-transform focus:outline-none"
-              title="Go to Settings"
-            >
-              <Settings className="w-8 h-8 text-indigo-600" />
-            </button>
-            Admin Panel
-          </h2>
-          <p className="text-gray-500 font-medium">Manage questions and view student results.</p>
-          <div className="flex gap-4 mt-2">
-            <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-1 rounded uppercase tracking-widest">R2 Code: sacet@r2</span>
-            <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-1 rounded uppercase tracking-widest">R3 Code: sacet@r3</span>
-          </div>
+    <div className="max-w-7xl mx-auto space-y-12">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+        <div className="space-y-2">
+          <h2 className="text-5xl font-black tracking-tighter uppercase font-display">Control Panel</h2>
+          <p className="text-gray-400 font-medium">System configuration and event management.</p>
         </div>
-        <div className="flex gap-2">
-          <button 
-            onClick={() => setIsLoggedIn(false)}
-            className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-900"
+        <button 
+          onClick={() => setIsLoggedIn(false)}
+          className="px-8 py-4 bg-white/5 text-gray-400 rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/5"
+        >
+          Terminate Session
+        </button>
+      </div>
+
+      <div className="flex flex-wrap gap-3 p-2 bg-white/5 rounded-3xl border border-white/5 w-fit">
+        {[
+          { id: 'teams', icon: Users, label: 'Teams' },
+          { id: 'questions', icon: BookOpen, label: 'Questions' },
+          { id: 'results', icon: Trophy, label: 'Results' }
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-sm transition-all ${
+              activeTab === tab.id 
+                ? 'bg-yellow-600 text-white shadow-[0_0_30px_rgba(234,179,8,0.3)]' 
+                : 'text-gray-500 hover:text-white hover:bg-white/5'
+            }`}
           >
-            Logout
+            <tab.icon className="w-5 h-5" />
+            {tab.label}
           </button>
-        </div>
+        ))}
       </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-gray-200">
-        <button
-          onClick={() => setActiveTab('questions')}
-          className={`px-8 py-4 font-bold text-sm uppercase tracking-widest transition-all border-b-2 ${
-            activeTab === 'questions' 
-              ? 'border-indigo-600 text-indigo-600' 
-              : 'border-transparent text-gray-400 hover:text-gray-600'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4" />
-            Questions
-          </div>
-        </button>
-        <button
-          onClick={() => setActiveTab('results')}
-          className={`px-8 py-4 font-bold text-sm uppercase tracking-widest transition-all border-b-2 ${
-            activeTab === 'results' 
-              ? 'border-indigo-600 text-indigo-600' 
-              : 'border-transparent text-gray-400 hover:text-gray-600'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Student Results
-          </div>
-        </button>
-        <button
-          onClick={() => setActiveTab('teams')}
-          className={`px-8 py-4 font-bold text-sm uppercase tracking-widest transition-all border-b-2 ${
-            activeTab === 'teams' 
-              ? 'border-indigo-600 text-indigo-600' 
-              : 'border-transparent text-gray-400 hover:text-gray-600'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Teams
-          </div>
-        </button>
-        <button
-          onClick={() => setActiveTab('settings')}
-          className={`px-8 py-4 font-bold text-sm uppercase tracking-widest transition-all border-b-2 ${
-            activeTab === 'settings' 
-              ? 'border-indigo-600 text-indigo-600' 
-              : 'border-transparent text-gray-400 hover:text-gray-600'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Settings className="w-4 h-4" />
-            Settings
-          </div>
-        </button>
-      </div>
+      <AnimatePresence mode="wait">
+        {activeTab === 'questions' && (
+          <motion.div 
+            key="questions"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-10"
+          >
+            <div className="flex flex-wrap gap-3 p-2 bg-white/5 rounded-2xl border border-white/5 w-fit">
+              {(['round1', 'round2', 'round3'] as RoundKey[]).map((round) => (
+                <button
+                  key={round}
+                  onClick={() => setActiveRound(round)}
+                  className={`px-8 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all ${
+                    activeRound === round 
+                      ? 'bg-white text-black shadow-xl' 
+                      : 'text-gray-500 hover:text-white'
+                  }`}
+                >
+                  {round.replace('round', 'Round ')}
+                </button>
+              ))}
+            </div>
 
-      {activeTab === 'questions' ? (
-        <div className="space-y-8">
-          <div className="flex justify-end">
-            <button 
-              onClick={resetToDefaults}
-              className="px-6 py-3 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-colors text-sm uppercase tracking-widest flex items-center gap-2"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Reset Questions to Defaults
-            </button>
-          </div>
-
-          {/* Round Selector */}
-          <div className="flex p-1 bg-gray-100 rounded-2xl w-fit">
-            {(['round1', 'round2', 'round3'] as RoundKey[]).map((round) => (
-              <button
-                key={round}
-                onClick={() => setActiveRound(round)}
-                className={`px-8 py-3 rounded-xl font-bold text-sm uppercase tracking-widest transition-all ${
-                  activeRound === round 
-                    ? 'bg-white text-indigo-600 shadow-sm' 
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {round.replace('round', 'Round ')}
-              </button>
-            ))}
-          </div>
-
-          <div className="grid lg:grid-cols-[400px_1fr] gap-8 items-start">
-            {/* Add Question Form */}
-            <aside className="bg-white p-8 rounded-3xl border border-black/5 shadow-sm space-y-6 sticky top-24">
-              <h3 className="font-bold text-xl">Add New Question</h3>
-              
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Question Text</label>
-                  <textarea 
-                    value={newQuestion.text}
-                    onChange={(e) => setNewQuestion({...newQuestion, text: e.target.value})}
-                    placeholder="Enter question..."
-                    className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none min-h-[100px]"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Question Media (Optional)</label>
-                  <div className="flex gap-2">
-                    <select 
-                      value={newQuestion.media.type}
-                      onChange={(e) => setNewQuestion({...newQuestion, media: {...newQuestion.media, type: e.target.value as any}})}
-                      className="bg-gray-50 border-none rounded-xl px-2 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none"
-                    >
-                      <option value="image">Image</option>
-                      <option value="video">Video</option>
-                      <option value="audio">Audio</option>
-                    </select>
-                    <input 
-                      type="text" 
-                      value={newQuestion.media.url}
-                      onChange={(e) => setNewQuestion({...newQuestion, media: {...newQuestion.media, url: e.target.value}})}
-                      placeholder="Media URL (e.g. https://...)"
-                      className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+            <div className="grid lg:grid-cols-[450px_1fr] gap-12 items-start">
+              <div className="glass-card p-10 space-y-10 sticky top-12">
+                <h3 className="text-2xl font-black uppercase tracking-tight font-display">New Question</h3>
+                
+                <div className="space-y-8">
+                  <div className="space-y-4">
+                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Question Content</label>
+                    <textarea 
+                      value={newQuestion.text}
+                      onChange={(e) => setNewQuestion({...newQuestion, text: e.target.value})}
+                      placeholder="ENTER QUESTION TEXT..."
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-sm font-bold focus:ring-2 focus:ring-yellow-500 outline-none transition-all min-h-[120px] placeholder:text-gray-700"
                     />
                   </div>
+
+                  <div className="space-y-4">
+                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Media Attachment</label>
+                    <div className="grid grid-cols-[120px_1fr] gap-4">
+                      <select 
+                        value={newQuestion.media.type}
+                        onChange={(e) => setNewQuestion({...newQuestion, media: {...newQuestion.media, type: e.target.value as any}})}
+                        className="bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-xs font-bold uppercase tracking-widest focus:ring-2 focus:ring-yellow-500 outline-none"
+                      >
+                        <option value="image">Image</option>
+                        <option value="video">Video</option>
+                        <option value="audio">Audio</option>
+                      </select>
+                      <input 
+                        type="text" 
+                        value={newQuestion.media.url}
+                        onChange={(e) => setNewQuestion({...newQuestion, media: {...newQuestion.media, url: e.target.value}})}
+                        placeholder="URL (HTTPS://...)"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-6 py-4 text-sm font-bold focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-700"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">Response Options & Media</label>
+                    <div className="space-y-6">
+                      {newQuestion.options.map((opt, idx) => (
+                        <div key={idx} className="space-y-3 p-4 bg-white/5 rounded-2xl border border-white/10">
+                          <div className="flex items-center gap-4">
+                            <button 
+                              onClick={() => setNewQuestion({...newQuestion, correctAnswer: idx})}
+                              className={`w-10 h-10 rounded-xl flex items-center justify-center font-black transition-all flex-shrink-0 ${
+                                newQuestion.correctAnswer === idx 
+                                  ? 'bg-yellow-500 text-white shadow-[0_0_20px_rgba(234,179,8,0.4)]' 
+                                  : 'bg-white/5 text-gray-500 hover:text-white'
+                              }`}
+                            >
+                              {String.fromCharCode(65 + idx)}
+                            </button>
+                            <input 
+                              type="text" 
+                              value={opt}
+                              onChange={(e) => {
+                                const newOpts = [...newQuestion.options];
+                                newOpts[idx] = e.target.value;
+                                setNewQuestion({...newQuestion, options: newOpts});
+                              }}
+                              placeholder={`OPTION ${String.fromCharCode(65 + idx)}...`}
+                              className="flex-1 bg-transparent border-none px-2 py-2 text-sm font-bold focus:ring-0 outline-none placeholder:text-gray-700"
+                            />
+                          </div>
+                          <div className="grid grid-cols-[100px_1fr] gap-3 pl-14">
+                            <select 
+                              value={newQuestion.optionMedia[idx].type}
+                              onChange={(e) => {
+                                const newMedia = [...newQuestion.optionMedia];
+                                newMedia[idx] = { ...newMedia[idx], type: e.target.value as any };
+                                setNewQuestion({...newQuestion, optionMedia: newMedia});
+                              }}
+                              className="bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-[10px] font-black uppercase tracking-widest focus:ring-1 focus:ring-yellow-500 outline-none"
+                            >
+                              <option value="image">Img</option>
+                              <option value="video">Vid</option>
+                              <option value="audio">Aud</option>
+                            </select>
+                            <input 
+                              type="text" 
+                              value={newQuestion.optionMedia[idx].url}
+                              onChange={(e) => {
+                                const newMedia = [...newQuestion.optionMedia];
+                                newMedia[idx] = { ...newMedia[idx], url: e.target.value };
+                                setNewQuestion({...newQuestion, optionMedia: newMedia});
+                              }}
+                              placeholder="MEDIA URL..."
+                              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-[10px] font-bold focus:ring-1 focus:ring-yellow-500 outline-none placeholder:text-gray-700"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={addQuestion}
+                    className="neon-button neon-button-yellow w-full py-5 text-lg"
+                  >
+                    Deploy Question
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-black uppercase tracking-tight font-display">Question Queue ({questions[activeRound].length})</h3>
+                  <button 
+                    onClick={resetToDefaults}
+                    className="text-xs font-black text-red-500 uppercase tracking-widest hover:text-red-400 transition-colors flex items-center gap-2"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Factory Reset
+                  </button>
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Options & Media</label>
-                  {newQuestion.options.map((opt, idx) => (
-                    <div key={idx} className="space-y-2 p-3 bg-gray-50 rounded-2xl border border-gray-100">
-                      <div className="flex gap-2 items-center">
-                        <input 
-                          type="radio" 
-                          name="correct" 
-                          checked={newQuestion.correctAnswer === idx}
-                          onChange={() => setNewQuestion({...newQuestion, correctAnswer: idx})}
-                          className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <input 
-                          type="text" 
-                          value={opt}
-                          onChange={(e) => {
-                            const newOpts = [...newQuestion.options];
-                            newOpts[idx] = e.target.value;
-                            setNewQuestion({...newQuestion, options: newOpts});
-                          }}
-                          placeholder={`Option ${String.fromCharCode(65 + idx)}`}
-                          className="flex-1 bg-white border-none rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                        />
-                      </div>
-                      <div className="flex gap-2 pl-6">
-                        <select 
-                          value={newQuestion.optionMedia[idx].type}
-                          onChange={(e) => {
-                            const newMedia = [...newQuestion.optionMedia];
-                            newMedia[idx] = { ...newMedia[idx], type: e.target.value as any };
-                            setNewQuestion({...newQuestion, optionMedia: newMedia});
-                          }}
-                          className="bg-white border-none rounded-lg px-2 py-1 text-[10px] focus:ring-2 focus:ring-indigo-500 outline-none"
+                <div className="grid gap-6">
+                  {questions[activeRound].map((q, qIdx) => (
+                    <div key={q.id} className="glass-card p-8 group hover:border-white/20 transition-all">
+                      <div className="flex items-start justify-between gap-8">
+                        <div className="space-y-6 flex-1">
+                          <div className="flex items-center gap-4">
+                            <span className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-sm font-black text-gray-500">
+                              {qIdx + 1}
+                            </span>
+                            <h4 className="text-xl font-bold text-white leading-tight">{q.text}</h4>
+                          </div>
+                          
+                          {q.media && (
+                            <div className="inline-flex items-center gap-3 px-4 py-2 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
+                              {q.media.type === 'image' && <ImageIcon className="w-4 h-4 text-yellow-400" />}
+                              {q.media.type === 'video' && <Video className="w-4 h-4 text-yellow-400" />}
+                              {q.media.type === 'audio' && <Music className="w-4 h-4 text-yellow-400" />}
+                              <span className="text-[10px] font-black text-yellow-400 uppercase tracking-widest">Media Attached</span>
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-2 gap-4">
+                            {q.options.map((opt, oIdx) => (
+                              <div 
+                                key={oIdx} 
+                                className={`p-4 rounded-2xl border transition-all ${
+                                  q.correctAnswer === oIdx 
+                                    ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400' 
+                                    : 'bg-white/5 border-white/5 text-gray-500'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="text-xs font-black opacity-50">{String.fromCharCode(65 + oIdx)}</span>
+                                  <span className="text-sm font-bold">{opt}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => deleteQuestion(q.id)}
+                          className="w-12 h-12 flex items-center justify-center text-gray-600 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20"
                         >
-                          <option value="image">Img</option>
-                          <option value="video">Vid</option>
-                          <option value="audio">Aud</option>
-                        </select>
-                        <input 
-                          type="text" 
-                          value={newQuestion.optionMedia[idx].url}
-                          onChange={(e) => {
-                            const newMedia = [...newQuestion.optionMedia];
-                            newMedia[idx] = { ...newMedia[idx], url: e.target.value };
-                            setNewQuestion({...newQuestion, optionMedia: newMedia});
-                          }}
-                          placeholder="Option Media URL"
-                          className="flex-1 bg-white border-none rounded-lg px-3 py-1 text-[10px] focus:ring-2 focus:ring-indigo-500 outline-none"
-                        />
+                          <Trash2 className="w-5 h-5" />
+                        </button>
                       </div>
                     </div>
                   ))}
                 </div>
-
-                <button 
-                  onClick={addQuestion}
-                  className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2"
-                >
-                  <Plus className="w-5 h-5" />
-                  Add Question
-                </button>
               </div>
-            </aside>
-
-            {/* Question List */}
-            <main className="space-y-4">
-              <h3 className="font-bold text-xl">Existing Questions ({questions[activeRound].length})</h3>
-              <div className="space-y-4">
-                {questions[activeRound].map((q, qIdx) => (
-                  <div key={q.id} className="bg-white p-6 rounded-2xl border border-black/5 shadow-sm flex items-start justify-between gap-4">
-                    <div className="space-y-4 flex-1">
-                      <div className="flex items-center gap-3">
-                        <span className="bg-gray-100 text-gray-500 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">Q{qIdx + 1}</span>
-                        <div className="space-y-2 flex-1">
-                          <h4 className="font-bold text-gray-900">{q.text}</h4>
-                          {q.media && (
-                            <div className="mt-2 text-[10px] font-bold text-indigo-600 flex items-center gap-1">
-                              {q.media.type === 'image' && <ImageIcon className="w-3 h-3" />}
-                              {q.media.type === 'video' && <Video className="w-3 h-3" />}
-                              {q.media.type === 'audio' && <Music className="w-3 h-3" />}
-                              Media: {q.media.url.substring(0, 30)}...
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        {q.options.map((opt, oIdx) => (
-                          <div 
-                            key={oIdx} 
-                            className={`text-xs p-2 rounded-lg border space-y-1 ${
-                              q.correctAnswer === oIdx 
-                                ? 'bg-green-50 border-green-200 text-green-700 font-bold' 
-                                : 'bg-gray-50 border-gray-100 text-gray-500'
-                            }`}
-                          >
-                            <div>{String.fromCharCode(65 + oIdx)}. {opt}</div>
-                            {q.optionMedia?.[oIdx] && (
-                              <div className="text-[8px] opacity-70 flex items-center gap-1">
-                                {q.optionMedia[oIdx]?.type === 'image' && <ImageIcon className="w-2 h-2" />}
-                                {q.optionMedia[oIdx]?.type === 'video' && <Video className="w-2 h-2" />}
-                                {q.optionMedia[oIdx]?.type === 'audio' && <Music className="w-2 h-2" />}
-                                Media attached
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => deleteQuestion(q.id)}
-                      className="text-gray-300 hover:text-red-500 transition-colors p-2"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </main>
-          </div>
-        </div>
-      ) : activeTab === 'results' ? (
-        <div className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input 
-                type="text" 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by name, hall ticket, or college..."
-                className="w-full bg-white border border-black/5 rounded-2xl pl-12 pr-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm"
-              />
             </div>
-            <button 
-              onClick={clearResults}
-              className="px-6 py-3 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-colors text-sm uppercase tracking-widest flex items-center gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              Clear All Results
-            </button>
-          </div>
+          </motion.div>
+        )}
 
-          <div className="bg-white rounded-3xl border border-black/5 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
-                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Student Details</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">College & Branch</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Score</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Submitted At</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {filteredResults.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center text-gray-400 italic">No results found.</td>
+        {activeTab === 'results' && (
+          <motion.div 
+            key="results"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-10"
+          >
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+              <div className="relative flex-1 max-w-2xl">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-500" />
+                <input 
+                  type="text" 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="SEARCH CANDIDATES, HALL TICKETS, OR COLLEGES..."
+                  className="w-full bg-white/5 border border-white/10 rounded-[32px] pl-16 pr-8 py-6 text-sm font-bold tracking-widest focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-700"
+                />
+              </div>
+              <button 
+                onClick={clearResults}
+                className="px-10 py-6 bg-red-500/10 text-red-500 rounded-[32px] font-black uppercase tracking-widest text-sm hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
+              >
+                Purge All Data
+              </button>
+            </div>
+
+            <div className="glass-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/5 bg-white/[0.02]">
+                      <th className="px-10 py-8 text-xs font-black text-gray-500 uppercase tracking-widest">Candidate Profile</th>
+                      <th className="px-10 py-8 text-xs font-black text-gray-500 uppercase tracking-widest">Institutional Data</th>
+                      <th className="px-10 py-8 text-xs font-black text-gray-500 uppercase tracking-widest text-center">Performance</th>
+                      <th className="px-10 py-8 text-xs font-black text-gray-500 uppercase tracking-widest">Timestamp</th>
                     </tr>
-                  ) : (
-                    filteredResults.map((result) => (
-                      <tr key={result.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="font-bold text-gray-900">{result.fullName}</div>
-                          <div className="text-xs text-gray-500 font-mono">{result.hallTicketNumber}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-700">{result.collegeName}</div>
-                          <div className="text-xs text-indigo-600 font-bold uppercase tracking-widest">{result.branch}</div>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 font-black text-xl">
-                            {result.score}
-                          </div>
-                          <div className="text-[10px] text-gray-400 font-bold mt-1 uppercase">Out of {result.totalQuestions}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-xs text-gray-500">
-                            {new Date(result.submittedAt).toLocaleDateString()}<br/>
-                            {new Date(result.submittedAt).toLocaleTimeString()}
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {filteredResults.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="px-10 py-32 text-center">
+                          <div className="space-y-4">
+                            <Search className="w-16 h-16 text-gray-800 mx-auto" />
+                            <p className="text-gray-600 font-black uppercase tracking-widest">No matching records found.</p>
                           </div>
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      ) : activeTab === 'teams' ? (
-        <div className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <h3 className="text-xl font-bold text-gray-900 uppercase tracking-tight">Registered Teams ({teams.length})</h3>
-              <p className="text-gray-500 text-sm">Teams participating in Round 2 and Round 3.</p>
-            </div>
-            <div className="flex gap-2">
-              <button 
-                onClick={resetTeamScores}
-                className="px-6 py-3 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-colors text-sm uppercase tracking-widest flex items-center gap-2"
-              >
-                <RotateCcw className="w-4 h-4" />
-                Reset Scores
-              </button>
-              <button 
-                onClick={clearAllTeams}
-                className="px-6 py-3 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-colors text-sm uppercase tracking-widest flex items-center gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete All Teams
-              </button>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {teams.length === 0 ? (
-              <div className="col-span-full py-20 text-center bg-white rounded-3xl border border-black/5">
-                <p className="text-gray-400 italic">No teams registered yet. Teams are added in Round 2.</p>
+                    ) : (
+                      filteredResults.map((result) => (
+                        <tr key={result.id} className="hover:bg-white/[0.02] transition-colors group">
+                          <td className="px-10 py-8">
+                            <div className="space-y-1">
+                              <div className="text-xl font-black text-white uppercase tracking-tight font-display group-hover:text-yellow-400 transition-colors">{result.fullName}</div>
+                              <div className="text-xs text-gray-500 font-mono tracking-widest">{result.hallTicketNumber}</div>
+                            </div>
+                          </td>
+                          <td className="px-10 py-8">
+                            <div className="space-y-1">
+                              <div className="text-sm font-bold text-gray-300">{result.collegeName}</div>
+                              <div className="inline-block px-3 py-1 bg-yellow-500/10 rounded-lg text-[10px] font-black text-yellow-400 uppercase tracking-widest border border-yellow-500/20">
+                                {result.branch}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-10 py-8 text-center">
+                            <div className="inline-flex flex-col items-center">
+                              <div className="text-4xl font-black text-white font-display">{result.score}</div>
+                              <div className="text-[10px] text-gray-600 font-black uppercase tracking-widest mt-1">Points</div>
+                            </div>
+                          </td>
+                          <td className="px-10 py-8">
+                            <div className="text-xs text-gray-500 font-mono space-y-1">
+                              <div>{new Date(result.submittedAt).toLocaleDateString()}</div>
+                              <div className="opacity-50">{new Date(result.submittedAt).toLocaleTimeString()}</div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
-            ) : (
-              teams.map((team) => (
-                <div key={team.id} className="bg-white p-6 rounded-2xl border border-black/5 shadow-sm space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-gray-900">{team.name}</h4>
-                    <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-1 rounded uppercase tracking-widest">ID: {team.id.substring(0, 4)}</span>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'teams' && (
+          <motion.div 
+            key="teams"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-10"
+          >
+            <div className="grid lg:grid-cols-[400px_1fr] gap-12 items-start">
+              <div className="glass-card p-10 space-y-10 sticky top-12">
+                <h3 className="text-2xl font-black uppercase tracking-tight font-display">Team Management</h3>
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <label className="text-xs font-black text-gray-500 uppercase tracking-widest">New Team Name</label>
+                    <input 
+                      type="text" 
+                      value={newTeamName}
+                      onChange={(e) => setNewTeamName(e.target.value)}
+                      placeholder="ENTER TEAM NAME..."
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-5 text-sm font-bold focus:ring-2 focus:ring-yellow-500 outline-none transition-all placeholder:text-gray-700"
+                    />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-3xl font-black text-indigo-600">{team.score}</div>
-                    <div className="text-xs text-gray-400 font-bold uppercase tracking-widest">Total Points</div>
+                  <button 
+                    onClick={addTeam}
+                    className="neon-button neon-button-yellow w-full py-5 text-lg"
+                  >
+                    Register Team
+                  </button>
+                  <div className="pt-6 border-t border-white/5 space-y-4">
+                    <button 
+                      onClick={resetTeamScores}
+                      className="w-full py-4 rounded-xl border border-white/10 text-gray-400 font-black uppercase tracking-widest text-xs hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-3"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Reset All Scores
+                    </button>
+                    <button 
+                      onClick={clearAllTeams}
+                      className="w-full py-4 rounded-xl border border-red-500/20 text-red-500 font-black uppercase tracking-widest text-xs hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-3"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Purge All Teams
+                    </button>
+                    <button 
+                      onClick={resetAllData}
+                      className="w-full py-4 rounded-xl bg-red-600 text-white font-black uppercase tracking-widest text-xs hover:bg-red-700 transition-all flex items-center justify-center gap-3 shadow-lg shadow-red-900/20"
+                    >
+                      <AlertCircle className="w-4 h-4" />
+                      Total System Wipe
+                    </button>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
-      ) : activeTab === 'settings' ? (
-        <div className="max-w-2xl mx-auto space-y-8 py-8">
-          <div className="bg-white p-8 rounded-3xl border border-black/5 shadow-sm space-y-8">
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold text-red-600 uppercase tracking-tight">Danger Zone</h3>
-              <p className="text-gray-500 text-sm">Be careful! These actions cannot be undone.</p>
-            </div>
-
-            <div className="grid gap-4">
-              <div className="p-6 bg-red-50 rounded-2xl border border-red-100 space-y-4">
-                <div className="space-y-1">
-                  <h4 className="font-bold text-red-900">Reset Questions</h4>
-                  <p className="text-xs text-red-700">Restore all questions to their original default state. This will delete any custom questions you've added.</p>
-                </div>
-                <button 
-                  onClick={resetToDefaults}
-                  className="w-full bg-white text-red-600 py-3 rounded-xl font-bold border border-red-200 hover:bg-red-100 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  Reset to Defaults
-                </button>
               </div>
 
-              <div className="p-6 bg-red-50 rounded-2xl border border-red-100 space-y-4">
-                <div className="space-y-1">
-                  <h4 className="font-bold text-red-900">Clear Student Results</h4>
-                  <p className="text-xs text-red-700">Permanently delete all screening test results from Round 1.</p>
+              <div className="space-y-8">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-black uppercase tracking-tight font-display">Active Roster ({teams.length})</h3>
+                  <button 
+                    onClick={moveToRound3}
+                    className="neon-button neon-button-yellow px-8 py-3 text-xs"
+                  >
+                    Select Top 5 for Final
+                  </button>
                 </div>
-                <button 
-                  onClick={clearResults}
-                  className="w-full bg-white text-red-600 py-3 rounded-xl font-bold border border-red-200 hover:bg-red-100 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Clear All Results
-                </button>
-              </div>
 
-              <div className="p-6 bg-red-50 rounded-2xl border border-red-100 space-y-4">
-                <div className="space-y-1">
-                  <h4 className="font-bold text-red-900">Reset Team Scores</h4>
-                  <p className="text-xs text-red-700">Set all team scores to 0 for Round 2 and Round 3. Teams will remain, but their scores will be cleared.</p>
+                <div className="grid gap-4">
+                  {[...teams].sort((a, b) => b.score - a.score).map((team, idx) => (
+                    <div key={team.id} className="glass-card p-6 flex items-center justify-between group hover:border-white/20 transition-all">
+                      <div className="flex items-center gap-6">
+                        <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-sm font-black text-gray-500">
+                          {idx + 1}
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="text-xl font-black text-white uppercase tracking-tight font-display">{team.name}</h4>
+                          <div className="text-3xl font-black text-yellow-500 font-display">{team.score} <span className="text-xs text-gray-600 uppercase tracking-widest ml-2">Points</span></div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col gap-2">
+                          <button 
+                            onClick={() => updateTeamScore(team.id, 10)}
+                            className="px-4 py-2 bg-emerald-500/10 text-emerald-500 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all"
+                          >
+                            +10
+                          </button>
+                          <button 
+                            onClick={() => updateTeamScore(team.id, -5)}
+                            className="px-4 py-2 bg-red-500/10 text-red-500 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+                          >
+                            -5
+                          </button>
+                        </div>
+                        <button 
+                          onClick={() => removeTeam(team.id)}
+                          className="w-12 h-12 flex items-center justify-center text-gray-600 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <button 
-                  onClick={resetTeamScores}
-                  className="w-full bg-white text-red-600 py-3 rounded-xl font-bold border border-red-200 hover:bg-red-100 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  Reset All Scores
-                </button>
-              </div>
-
-              <div className="p-6 bg-red-50 rounded-2xl border border-red-100 space-y-4">
-                <div className="space-y-1">
-                  <h4 className="font-bold text-red-900">Delete All Teams</h4>
-                  <p className="text-xs text-red-700">Remove all teams from the system. This will clear the team list for Round 2 and Round 3.</p>
-                </div>
-                <button 
-                  onClick={clearAllTeams}
-                  className="w-full bg-white text-red-600 py-3 rounded-xl font-bold border border-red-200 hover:bg-red-100 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete All Teams
-                </button>
-              </div>
-
-              <div className="p-6 bg-red-600 rounded-2xl border border-red-700 space-y-4 shadow-lg shadow-red-200">
-                <div className="space-y-1">
-                  <h4 className="font-bold text-white">Reset All Data</h4>
-                  <p className="text-xs text-red-100">Wipe everything: questions, results, and teams. The ultimate reset.</p>
-                </div>
-                <button 
-                  onClick={resetAllData}
-                  className="w-full bg-white text-red-600 py-3 rounded-xl font-bold hover:bg-red-50 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2"
-                >
-                  <AlertCircle className="w-4 h-4" />
-                  Reset All Data
-                </button>
               </div>
             </div>
-          </div>
-        </div>
-      ) : null}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

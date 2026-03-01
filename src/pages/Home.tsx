@@ -1,129 +1,133 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Zap, Users, Award, ChevronRight, ScrollText, Gift } from 'lucide-react';
+import { Calendar, Clock, MapPin, ShieldCheck, Info, ChevronRight, Lock } from 'lucide-react';
 
 export default function Home() {
   return (
-    <div className="space-y-12">
+    <div className="space-y-20 py-10">
       {/* Hero Section */}
-      <section className="text-center space-y-6 py-12">
+      <section className="text-center space-y-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-4"
+          className="flex flex-col items-center space-y-6"
         >
-          <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-gray-900 uppercase">
-            SACET<span className="text-indigo-600">RAJATHOTSAV</span>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-yellow-500/50 bg-yellow-500/5 text-yellow-500 text-[10px] font-black uppercase tracking-[0.2em]">
+            <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" />
+            RAJATHOTSHAV – 25 YEARS CELEBRATION
+          </div>
+          
+          <h1 className="text-[12vw] md:text-[10vw] font-display leading-[0.85] tracking-tighter uppercase bg-gradient-to-b from-yellow-400 via-orange-500 to-red-600 bg-clip-text text-transparent drop-shadow-2xl">
+            TECHTRECK
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto font-medium">
-            Celebrating 25 years of excellence in technical education and innovation. Join us for the grand Silver Jubilee Celebrations.
+          
+          <p className="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto font-medium leading-relaxed">
+            The ultimate technical quiz battleground organized by the <br />
+            <span className="text-yellow-400 font-black">CSE Department</span> of St Ann's College of Engineering & Technology.
           </p>
         </motion.div>
       </section>
 
-      {/* TECHTRECK Section */}
-      <section className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-black/5 space-y-8">
-        <div className="flex items-center gap-4">
-          <div className="bg-indigo-100 p-3 rounded-2xl">
-            <Zap className="w-8 h-8 text-indigo-600" />
-          </div>
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">TECHTRECK</h2>
-            <p className="text-gray-500">The Ultimate Technical Quiz Challenge</p>
-          </div>
-        </div>
-
-        <p className="text-lg text-gray-700 leading-relaxed">
-          Step forward and exhibit your technical brilliance in an engaging and competitive environment. 
-          Test your knowledge, boost your confidence, and shine among the best minds.
-        </p>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <h3 className="flex items-center gap-2 font-bold text-xl">
-              <ScrollText className="w-5 h-5 text-indigo-600" />
-              Rules & Regulations
-            </h3>
-            <ul className="space-y-3 text-gray-600">
-              {[
-                "The Screening Test will be conducted for all registered participants.",
-                "The Screening Test will consist of 30 MCQs to be completed within 20 minutes.",
-                "The Screening Test will be conducted individually.",
-                "Based on results, candidates will be shortlisted and grouped into 5 teams (3 members each).",
-                "Selected teams will participate in Technical Round and Final Round.",
-                "Certificates and prizes will be distributed to 1st and 2nd winners.",
-                "Decision of Quiz Committee is final."
-              ].map((rule, i) => (
-                <li key={i} className="flex gap-3">
-                  <span className="text-indigo-600 font-bold">•</span>
-                  {rule}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="flex items-center gap-2 font-bold text-xl">
-              <Gift className="w-5 h-5 text-indigo-600" />
-              Prize Pool
-            </h3>
-            <div className="bg-indigo-50 rounded-2xl p-6 border border-indigo-100">
-              <p className="text-indigo-900 font-medium leading-relaxed">
-                Win exciting cash prizes, certificates, and trophies. 
-                Participation certificates will be provided to all.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Navigation Cards */}
+      {/* Info Grid */}
       <section className="grid md:grid-cols-3 gap-6">
         {[
-          { 
-            title: "Round 1", 
-            subtitle: "Qualifying Round", 
-            desc: "Individual screening test with 30 MCQs.",
-            path: "/round1",
-            icon: Zap,
-            color: "bg-blue-500"
-          },
-          { 
-            title: "Round 2", 
-            subtitle: "Team Technical", 
-            desc: "Shortlisted teams battle it out.",
-            path: "/round2",
-            icon: Users,
-            color: "bg-indigo-500"
-          },
-          { 
-            title: "Round 3", 
-            subtitle: "Final Round", 
-            desc: "The grand finale rapid fire.",
-            path: "/round3",
-            icon: Award,
-            color: "bg-purple-500"
-          }
-        ].map((round, i) => (
-          <Link key={i} to={round.path}>
-            <motion.div
-              whileHover={{ y: -5 }}
-              className="bg-white p-8 rounded-3xl shadow-sm border border-black/5 h-full flex flex-col group"
-            >
-              <div className={`${round.color} w-12 h-12 rounded-2xl flex items-center justify-center mb-6 text-white shadow-lg shadow-indigo-200`}>
-                <round.icon className="w-6 h-6" />
-              </div>
-              <h3 className="text-2xl font-bold mb-1">{round.title}</h3>
-              <p className="text-indigo-600 font-semibold text-sm mb-4 uppercase tracking-wider">{round.subtitle}</p>
-              <p className="text-gray-500 mb-8">{round.desc}</p>
-              <div className="mt-auto flex items-center text-gray-900 font-bold group-hover:text-indigo-600 transition-colors">
-                Start Round <ChevronRight className="w-4 h-4 ml-1" />
-              </div>
-            </motion.div>
-          </Link>
+          { icon: Calendar, label: 'DATE', value: 'March 6, 2026' },
+          { icon: Clock, label: 'TIME', value: 'Morning Session' },
+          { icon: MapPin, label: 'VENUE', value: 'Seminar Hall (131)' }
+        ].map((item, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className="glass-card p-8 text-center space-y-4 border-white/5 hover:border-white/10 transition-all group"
+          >
+            <item.icon className="w-6 h-6 text-orange-500 mx-auto group-hover:scale-110 transition-transform" />
+            <div className="space-y-1">
+              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{item.label}</p>
+              <p className="text-lg font-black text-white uppercase tracking-tight">{item.value}</p>
+            </div>
+          </motion.div>
         ))}
       </section>
+
+      {/* Details Grid */}
+      <section className="grid md:grid-cols-2 gap-8">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="glass-card p-10 space-y-6"
+        >
+          <div className="flex items-center gap-4">
+            <ShieldCheck className="w-6 h-6 text-yellow-500" />
+            <h3 className="text-2xl font-display uppercase tracking-tight text-yellow-500">About SACET</h3>
+          </div>
+          <p className="text-gray-400 leading-relaxed">
+            St. Ann's College of Engineering & Technology (SACET), Chirala, established in 2001, is a premier institution dedicated to academic excellence. The <span className="text-yellow-400 font-bold">Department of Computer Science and Engineering</span> is renowned for its innovative approach to technical education, preparing students for the dynamic world of technology through events like TECHTRECK.
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="glass-card p-10 space-y-6"
+        >
+          <div className="flex items-center gap-4">
+            <Info className="w-6 h-6 text-orange-500" />
+            <h3 className="text-2xl font-display uppercase tracking-tight text-orange-500">General Rules</h3>
+          </div>
+          <ul className="space-y-4 text-gray-400">
+            {[
+              "Open to all engineering students.",
+              "Round 1 is individual; subsequent rounds are team-based.",
+              "Malpractice leads to immediate disqualification.",
+              "Judge's decision is final and binding.",
+              "Report to venue 15 minutes before the start."
+            ].map((rule, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-2 flex-shrink-0" />
+                <span>{rule}</span>
+              </li>
+            ))}
+          </ul>
+        </motion.div>
+      </section>
+
+      {/* Navigation Buttons */}
+      <section className="flex flex-wrap items-center justify-center gap-6 pt-10">
+        <Link to="/round1">
+          <button className="px-10 py-4 rounded-xl bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest text-sm hover:bg-white/10 transition-all">
+            Round 1
+          </button>
+        </Link>
+        <Link to="/round2">
+          <button className="px-10 py-4 rounded-xl bg-yellow-400 text-black font-black uppercase tracking-widest text-sm hover:bg-yellow-300 shadow-[0_0_30px_rgba(250,204,21,0.3)] transition-all">
+            Round 2
+          </button>
+        </Link>
+        <Link to="/round3">
+          <button className="px-10 py-4 rounded-xl bg-orange-600 text-white font-black uppercase tracking-widest text-sm hover:bg-orange-500 shadow-[0_0_30px_rgba(234,88,12,0.3)] transition-all">
+            Round 3
+          </button>
+        </Link>
+        <Link to="/admin" className="text-gray-500 hover:text-white font-black uppercase tracking-widest text-sm transition-all ml-4">
+          Admin Login
+        </Link>
+      </section>
+
+      {/* Footer */}
+      <footer className="pt-20 pb-10 text-center space-y-4 border-t border-white/5">
+        <p className="text-xs font-medium text-gray-600 uppercase tracking-widest">
+          © 2026 Sri Aditya College of Engineering & Technology
+        </p>
+        <p className="text-[10px] font-black text-gray-700 uppercase tracking-[0.3em]">
+          Department of CSE - TechTreck 2026
+        </p>
+        <Link to="/admin" className="block text-[10px] font-black text-gray-800 uppercase tracking-widest hover:text-gray-600 transition-colors">
+          Organizer Portal
+        </Link>
+      </footer>
     </div>
   );
 }
